@@ -9,6 +9,8 @@ A lightweight Electron desktop app that runs a Matrix Rain screensaver when your
 ## Features
 
 - **Three screensaver modes** — Matrix Rain, Starfield, Clock
+- **WebGL2 GPU renderer** — Matrix Rain uses an instanced WebGL2 pipeline with a glyph atlas and ping-pong FBOs for trail effects; falls back to Canvas 2D automatically
+- **11 color styles** — Classic Green, Neon Blue, Amber Terminal, Random (per-char or per-column), RGB (per-char or per-column), and green-rain hybrid modes with rainbow or scrolling-rainbow masks
 - **Auto lock screen** — any keypress (including lone modifiers like Shift, Alt, Ctrl, Win), mouse movement, click, scroll, or touch instantly locks the workstation via `Win+L`
 - **Idle detection** — activates automatically after a configurable idle timeout (1–30 min)
 - **Keep screen awake** — prevents Windows from sleeping the display while the screensaver runs, with a configurable awake timeout (0–60 min)
@@ -38,7 +40,13 @@ npm run screensaver
 ## Screensaver Modes
 
 ### Matrix Rain
-Classic falling green characters (katakana + hex). Configurable letter size (8–16px) and rain speed (20–200%). Supports an optional **mask image** — upload a PNG with a transparent background and opaque areas will create a ghostly character retention pattern that fades in after 4 seconds.
+Falling katakana + hex characters rendered via a **WebGL2 instanced GPU pipeline** (Canvas 2D fallback if WebGL2 is unavailable). Each frame uses a ping-pong framebuffer for the fade trail and a pre-built glyph atlas texture for character rendering.
+
+Configurable:
+- **Letter size** (8–16px) and **rain speed** (20–200%)
+- **Rain opacity** (20–100%)
+- **Color style** — 11 presets (see Settings table below)
+- **Mask image** — upload a PNG with a transparent background; opaque areas create a ghostly character retention pattern that fades in after 4 seconds with a 2-second ramp. Mask scales to fit 80% of screen width / 70% of screen height.
 
 ### Starfield
 300-star warp-speed effect with depth-based sizing and alpha.
@@ -58,9 +66,27 @@ All settings are accessible via the config window (double-click the tray icon, o
 | Only When Plugged In | on/off | on | Skip activation when on battery power |
 | Letter Size | 8–16 px | 16 px | Matrix rain character size |
 | Rain Speed | 20–200% | 100% | Matrix rain animation speed |
+| Rain Opacity | 20–100% | 100% | Opacity of falling rain characters |
+| Color Style | 11 options | Classic Green | Rain (and mask) colour scheme |
 | Mask Effect | on/off | off | Enable PNG mask retention pattern |
 | Mask Image | PNG/WebP ≤500KB | — | Transparency-based mask for matrix rain |
 | Mask Intensity | 10–100% | 50% | How visible/persistent the mask pattern is |
+
+### Color Styles
+
+| Value | Description |
+|-------|-------------|
+| `classic-green` | Classic Matrix green |
+| `neon-blue` | Electric blue |
+| `amber` | Amber terminal glow |
+| `random-all` | Random hue per character |
+| `random-column` | Random hue per column, changes on reset |
+| `random-column-mask` | Random-column rain; mask inherits column hue |
+| `rgb-column` | Red/green/blue per column |
+| `rgb-char` | Random red/green/blue per character |
+| `green-rain-rainbow-mask` | Green rain; mask uses random rainbow hues |
+| `green-rain-rgb-mask` | Green rain; mask uses RGB hues |
+| `green-rain-scrolling-rainbow-mask` | Green rain; mask scrolls through rainbow over time |
 
 Settings are stored in `%APPDATA%/matrix-screensaver/MatrixScreensaver/config.json`.
 

@@ -43,8 +43,6 @@ let idleCheckInterval = null;
 let screensaverActive = false;
 let powerSaveBlockerId = null;
 let awakeTimer = null;
-const devMode = true; // DEV: set to false to re-enable Windows lock on input
-
 // ── Parse CLI args ──────────────────────────────────────────────────────────
 
 const args = process.argv.slice(1);
@@ -255,15 +253,11 @@ function closeScreensaverAndLock() {
     stopKeepAwake();
 
     // Lock workstation FIRST, then close windows
-    if (devMode) {
-        console.log('[DEV] Skipping LockWorkStation');
-    } else {
-        try {
-            execSync('rundll32.exe user32.dll,LockWorkStation');
-        } catch (e) {
-            // If lock fails, still close the screensaver
-            console.error('Failed to lock workstation:', e.message);
-        }
+    try {
+        execSync('rundll32.exe user32.dll,LockWorkStation');
+    } catch (e) {
+        // If lock fails, still close the screensaver
+        console.error('Failed to lock workstation:', e.message);
     }
 
     for (const win of screensaverWindows) {
