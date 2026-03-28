@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Screensaver — Settings</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 24px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 24px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        select, input[type="range"] {
+            accent-color: #667eea;
+        }
+        select {
+            background: #1e1e3a;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        select:focus { border-color: #667eea; }
+        select option {
+            background: #1e1e3a;
+            color: #fff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .slider-row {
+            margin-bottom: 16px;
+        }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .slider-val {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* Toggle switch */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            cursor: pointer;
+        }
+        .toggle-switch input { display: none; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.15);
+            border-radius: 22px;
+            transition: background 0.2s;
+        }
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: #667eea;
+        }
+        .toggle-switch input:checked + .toggle-slider::after {
+            transform: translateX(18px);
+        }
+
+        /* Mask preview */
+        .mask-preview {
+            width: 100%;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .mask-preview img {
+            max-height: 60px;
+            max-width: 100%;
+            object-fit: contain;
+            opacity: 0.8;
+        }
+        .mask-preview .empty {
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 13px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        button:hover { background: rgba(255,255,255,0.12); }
+        button.primary {
+            background: #667eea;
+            border-color: #667eea;
+            color: #fff;
+            font-weight: 500;
+        }
+        button.primary:hover { background: #5a6fd6; }
+        button:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 18px 0;
+        }
+
+        .launch-section {
+            text-align: center;
+            padding-top: 4px;
+        }
+        .launch-section button {
+            padding: 12px 40px;
+            font-size: 15px;
+        }
+
+        #maskSection {
+            transition: opacity 0.2s;
+        }
+        #maskSection.hidden {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Matrix Screensaver</h1>
+    <div class="subtitle">Screensaver with auto lock screen</div>
+
+    <!-- Mode -->
+    <div class="section">
+        <div class="section-title">Mode</div>
+        <select id="type">
+            <option value="matrix">Matrix Rain</option>
+            <option value="starfield">Starfield</option>
+            <option value="clock">Clock Only</option>
+        </select>
+    </div>
+
+    <!-- Idle timeout -->
+    <div class="section">
+        <div class="section-title">Activation</div>
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Activate after idle</label>
+                <span class="slider-val" id="idleVal">5 min</span>
+            </div>
+            <input type="range" id="idleTimeout" min="1" max="30" value="5">
+        </div>
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Keep screen awake for</label>
+                <span class="slider-val" id="awakeVal">15 min</span>
+            </div>
+            <input type="range" id="awakeTimeout" min="0" max="60" value="15">
+        </div>
+        <div class="toggle-row">
+            <label>Only when plugged in</label>
+            <label class="toggle-switch"><input type="checkbox" id="onlyOnPower" checked><span class="toggle-slider"></span></label>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Matrix settings -->
+    <div id="maskSection">
+        <div class="section-title">Matrix Settings</div>
+
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Letter Size</label>
+                <span class="slider-val" id="sizeVal">16px</span>
+            </div>
+            <input type="range" id="letterSize" min="8" max="16" value="16">
+        </div>
+
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Rain Speed</label>
+                <span class="slider-val" id="speedVal">100%</span>
+            </div>
+            <input type="range" id="rainSpeed" min="20" max="200" value="100">
+        </div>
+
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Rain Opacity</label>
+                <span class="slider-val" id="rainOpacityVal">100%</span>
+            </div>
+            <input type="range" id="rainOpacity" min="20" max="100" value="100">
+        </div>
+
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Color Style</label>
+            </div>
+            <select id="colorStyle">
+                <option value="classic-green">Classic Green</option>
+                <option value="neon-blue">Neon Blue</option>
+                <option value="amber">Amber Terminal</option>
+                <option value="random-all">Random Colors (per character)</option>
+                <option value="random-column">Random Colors (per column)</option>
+                <option value="random-column-mask">Random Colors (per column + mask)</option>
+                <option value="rgb-column">RGB (per column)</option>
+                <option value="rgb-char">RGB (per character)</option>
+                <option value="green-rain-rainbow-mask">Green Rain · Rainbow Mask</option>
+                <option value="green-rain-rgb-mask">Green Rain · RGB Mask</option>
+                <option value="green-rain-scrolling-rainbow-mask">Green Rain · Scrolling Rainbow Mask</option>
+            </select>
+        </div>
+
+        <div class="toggle-row">
+            <label>Mask Effect</label>
+            <label class="toggle-switch"><input type="checkbox" id="maskEnabled"><span class="toggle-slider"></span></label>
+        </div>
+
+        <div class="slider-row">
+            <div class="slider-header">
+                <label>Mask Intensity</label>
+                <span class="slider-val" id="intensityVal">50%</span>
+            </div>
+            <input type="range" id="maskIntensity" min="10" max="100" value="50">
+        </div>
+
+        <div class="mask-preview" id="maskPreview">
+            <span class="empty">No mask image</span>
+        </div>
+
+        <div class="btn-row">
+            <button id="maskChoose">Choose Image</button>
+            <button id="maskClear" disabled>Clear</button>
+        </div>
+        <input type="file" id="maskFile" accept="image/png,image/webp" style="display:none;">
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Launch -->
+    <div class="launch-section">
+        <button class="primary" id="launch">Launch Screensaver</button>
+    </div>
+
+    <script src="config.js"></script>
+</body>
+</html>

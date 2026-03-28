@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Screensaver</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #000;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        canvas { display: block; width: 100%; height: 100%; background: #000; }
+    </style>
+    <link rel="stylesheet" href="screensaver.css">
+</head>
+<body style="background:#000;">
+    <canvas id="canvas" style="background:#000;"></canvas>
+    <script>
+        (function() {
+            var c = document.getElementById('canvas');
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+            var gl = c.getContext('webgl2', { alpha: false });
+            if (gl) {
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+            } else {
+                var ctx2d = c.getContext('2d');
+                ctx2d.fillStyle = '#000';
+                ctx2d.fillRect(0, 0, c.width, c.height);
+            }
+        })();
+    </script>
+    <script src="screensaver.js"></script>
+</body>
+</html>

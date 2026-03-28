@@ -1,0 +1,14 @@
+{
+  "name": "matrix-screensaver",
+  "version": "1.0.0",
+  "description": "Matrix Rain screensaver with auto lock screen",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "screensaver": "electron . --screensaver",
+    "config": "electron . --config"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}
