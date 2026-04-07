@@ -99,6 +99,19 @@ rundll32.exe user32.dll,LockWorkStation
 
 This is the programmatic equivalent of pressing `Win+L`. It does **not** require admin privileges and works on all Windows 10/11 machines.
 
+### Network isolation
+
+The app is hardened to avoid all normal inbound/outbound web communication paths:
+
+- No remote fonts or other external assets are loaded
+- Both renderer pages use a restrictive CSP with `default-src 'none'` and `connect-src 'none'`
+- Electron blocks all `http`, `https`, `ws`, and `wss` renderer requests at the session layer
+- All permission requests are denied, and external navigation / popup windows are blocked
+- Chromium background networking features are disabled with command-line switches
+- Node.js main-process networking modules (`http`, `https`, `net`, `dgram`, `dns`) are disabled at startup
+
+This covers normal Electron, browser, and Node.js networking paths inside the app itself.
+
 ### Input coverage
 
 | Input | Action |

@@ -1,7 +1,33 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, powerMonitor, powerSaveBlocker } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, powerMonitor, powerSaveBlocker, session } = require('electron');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+
+// ── Network Isolation: Layer 1 — Freeze Node.js networking modules ──────────
+// Prevents any main-process code (including compromised libs) from
+// using Node's built-in network stack.
+['http', 'https', 'net', 'dgram', 'dns'].forEach(mod => {
+    const m = require(mod);
+    const block = () => { throw new Error(`[NetworkIsolation] ${mod} is disabled`); };
+    if (m.request) m.request = block;
+    if (m.get) m.get = block;
+    if (m.connect) m.connect = block;
+    if (m.createConnection) m.createConnection = block;
+    if (m.createServer) m.createServer = block;
+    if (m.lookup) m.lookup = block;
+    if (m.resolve) m.resolve = block;
+    if (m.createSocket) m.createSocket = block;
+});
+
+// ── Network Isolation: Layer 2 — Chromium command-line switches ─────────────
+// Disables background network activity inside Chromium's engine.
+app.commandLine.appendSwitch('disable-background-networking');
+app.commandLine.appendSwitch('no-pings');
+app.commandLine.appendSwitch('disable-sync');
+app.commandLine.appendSwitch('disable-breakpad');
+app.commandLine.appendSwitch('disable-component-update');
+app.commandLine.appendSwitch('disable-domain-reliability');
+app.commandLine.appendSwitch('disable-features', 'NetworkService,OutOfBlinkCors');
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -64,6 +90,34 @@ if (!gotLock) {
 // ── App ready ───────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
+
+    // ── Network Isolation: Layer 3 — Block ALL outbound requests ────────────
+    // Cancels every HTTP/HTTPS/WS/WSS request from all renderer processes.
+    session.defaultSession.webRequest.onBeforeRequest(
+        { urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] },
+        (details, callback) => callback({ cancel: true })
+    );
+
+    // ── Network Isolation: Layer 4 — Inject CSP response headers ────────────
+    // Stamps CSP on every response to catch dynamically created content.
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [
+                    "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none';"
+                ]
+            }
+        });
+    });
+
+    // ── Network Isolation: Layer 5 — Deny all permission requests ───────────
+    // Blocks geolocation, media devices, notifications, clipboard, etc.
+    session.defaultSession.setPermissionRequestHandler(
+        (webContents, permission, callback) => callback(false)
+    );
+    session.defaultSession.setPermissionCheckHandler(() => false);
+
     if (flagScreensaver) {
         launchScreensaver();
     } else if (flagConfig) {
@@ -323,4 +377,16 @@ ipcMain.on('launch-screensaver', () => {
 
 ipcMain.on('set-login-item', (event, enabled) => {
     app.setLoginItemSettings({ openAtLogin: enabled });
+});
+
+// ── Network Isolation: Layer 6 — Block external navigation & new windows ────
+// Prevents any renderer from navigating to a remote URL or spawning windows.
+app.on('web-contents-created', (event, contents) => {
+    contents.on('will-navigate', (e, url) => {
+        if (!url.startsWith('file://')) e.preventDefault();
+    });
+    contents.on('will-redirect', (e, url) => {
+        if (!url.startsWith('file://')) e.preventDefault();
+    });
+    contents.setWindowOpenHandler(() => ({ action: 'deny' }));
 });
