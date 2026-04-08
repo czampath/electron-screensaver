@@ -69,6 +69,7 @@ let idleCheckInterval = null;
 let screensaverActive = false;
 let powerSaveBlockerId = null;
 let awakeTimer = null;
+let unlockGraceUntil = 0;
 // ── Parse CLI args ──────────────────────────────────────────────────────────
 
 const args = process.argv.slice(1);
@@ -128,6 +129,20 @@ app.whenReady().then(() => {
         createTray();
         startIdleMonitoring();
     }
+
+    // ── Lock / Unlock awareness ─────────────────────────────────────────
+    // After unlock, suppress screensaver for 10 s so user input can reset
+    // the OS idle timer before the next poll fires.
+    powerMonitor.on('unlock-screen', () => {
+        unlockGraceUntil = Date.now() + 10_000;
+    });
+
+    // If the screen gets locked while the screensaver is running (e.g.
+    // awakeTimeout expired, or user hit Win+L on top of it), tear down
+    // the screensaver silently — no need to lock again.
+    powerMonitor.on('lock-screen', () => {
+        if (screensaverActive) closeScreensaverAndLock(true);
+    });
 });
 
 app.on('window-all-closed', () => {
@@ -180,6 +195,7 @@ function startIdleMonitoring() {
     stopIdleMonitoring();
     idleCheckInterval = setInterval(() => {
         if (screensaverActive) return;
+        if (Date.now() < unlockGraceUntil) return;
         const config = loadConfig();
 
         // Skip if on battery and onlyOnPower is enabled
@@ -301,17 +317,19 @@ function launchScreensaver() {
     }
 }
 
-function closeScreensaverAndLock() {
+function closeScreensaverAndLock(skipLock = false) {
     if (!screensaverActive) return;
     screensaverActive = false;
     stopKeepAwake();
 
     // Lock workstation FIRST, then close windows
-    try {
-        execSync('rundll32.exe user32.dll,LockWorkStation');
-    } catch (e) {
-        // If lock fails, still close the screensaver
-        console.error('Failed to lock workstation:', e.message);
+    if (!skipLock) {
+        try {
+            execSync('rundll32.exe user32.dll,LockWorkStation');
+        } catch (e) {
+            // If lock fails, still close the screensaver
+            console.error('Failed to lock workstation:', e.message);
+        }
     }
 
     for (const win of screensaverWindows) {
