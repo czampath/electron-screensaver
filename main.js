@@ -69,7 +69,7 @@ let idleCheckInterval = null;
 let screensaverActive = false;
 let powerSaveBlockerId = null;
 let awakeTimer = null;
-let unlockGraceUntil = 0;
+let systemLocked = false;
 // ── Parse CLI args ──────────────────────────────────────────────────────────
 
 const args = process.argv.slice(1);
@@ -131,16 +131,13 @@ app.whenReady().then(() => {
     }
 
     // ── Lock / Unlock awareness ─────────────────────────────────────────
-    // After unlock, suppress screensaver for 10 s so user input can reset
-    // the OS idle timer before the next poll fires.
-    powerMonitor.on('unlock-screen', () => {
-        unlockGraceUntil = Date.now() + 10_000;
+    powerMonitor.on('lock-screen', () => {
+        systemLocked = true;
+        if (screensaverActive) closeScreensaverAndLock(true);
     });
 
-    // If the screen gets locked while the screensaver is running (e.g.
-    // awakeTimeout expired, or user hit Win+L on top of it), tear down
-    // the screensaver silently — no need to lock again.
-    powerMonitor.on('lock-screen', () => {
+    powerMonitor.on('unlock-screen', () => {
+        systemLocked = false;
         if (screensaverActive) closeScreensaverAndLock(true);
     });
 });
@@ -195,7 +192,7 @@ function startIdleMonitoring() {
     stopIdleMonitoring();
     idleCheckInterval = setInterval(() => {
         if (screensaverActive) return;
-        if (Date.now() < unlockGraceUntil) return;
+        if (systemLocked) return;
         const config = loadConfig();
 
         // Skip if on battery and onlyOnPower is enabled
